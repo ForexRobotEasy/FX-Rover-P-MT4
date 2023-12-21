@@ -1,0 +1,81 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                            FX Rover P MT4       |
+//|                                Developer's Site: forexroboteasy.com|
+//|                                Developer: Forex Robot Easy Team   |
+//+------------------------------------------------------------------+
+
+// Include necessary libraries
+#include <Trade\Trade.mqh>
+#include <Trade\PositionInfo.mqh>
+
+// Define trading parameters
+input double LotSize = 0.01; // Initial lot size
+input double GridStep = 20; // Grid step in pips
+input double RangeSize = 100; // Range size in pips
+
+// Define trading function
+void TradeFXRoverP()
+{
+   // Calculate range boundaries
+   double RangeTop = Ask + RangeSize * _Point;
+   double RangeBottom = Bid - RangeSize * _Point;
+   
+   // Check if we are within the range
+   if (Ask > RangeBottom && Bid < RangeTop)
+   {
+      // Calculate grid levels
+      int GridLevels = MathCeil((RangeTop - RangeBottom) / GridStep);
+      
+      // Place pending buy and sell orders at grid levels
+      for (int i = 0; i < GridLevels; i++)
+      {
+         // Calculate order prices
+         double BuyPrice = RangeBottom + GridStep * i * _Point;
+         double SellPrice = RangeTop - GridStep * i * _Point;
+         
+         // Place pending buy order
+         if (!PositionSelect(_Symbol) && OrderSend(_Symbol, OP_BUYSTOP, LotSize, BuyPrice, 0, 0, 0, 'Buy Order'))
+         {
+            Print('Buy order placed at price ', BuyPrice);
+         }
+         
+         // Place pending sell order
+         if (!PositionSelect(_Symbol) && OrderSend(_Symbol, OP_SELLSTOP, LotSize, SellPrice, 0, 0, 0, 'Sell Order'))
+         {
+            Print('Sell order placed at price ', SellPrice);
+         }
+      }
+   }
+}
+
+//+------------------------------------------------------------------+
+//|                            Expert initialization function       |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+   // Print expert initialization message
+   Print('FX Rover P MT4 initialized');
+   
+   return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//|                          Expert tick function                     |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+   // Call trading function
+   TradeFXRoverP();
+}
+
+//+------------------------------------------------------------------+
+//|                            Expert deinitialization function      |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+   // Print expert deinitialization message
+   Print('FX Rover P MT4 deinitialized');
+}
+
+//+------------------------------------------------------------------+
